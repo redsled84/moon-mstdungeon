@@ -248,10 +248,10 @@ class Dungeon
           love.graphics.setColor 245,245,245,100
           love.graphics.draw sprites, floorSprite, x * @tileSize, y * @tileSize, 0, .5, .5
         elseif @grid[y][x] == tiles.corridor
-          love.graphics.setColor 200,155,65,100
+          love.graphics.setColor 200,155,165,100
           love.graphics.draw sprites, corridorSprite, x * @tileSize, y * @tileSize, 0, .5, .5
         elseif @grid[y][x] == tiles.door
-          love.graphics.setColor 65,65,55,150
+          love.graphics.setColor 85,85,85,250
           love.graphics.rectangle "fill", x * @tileSize, y * @tileSize, @tileSize, @tileSize
         elseif @grid[y][x] == tiles.wall
           love.graphics.setColor 235,35,50,150
