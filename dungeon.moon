@@ -6,6 +6,8 @@ Grid = require "jumper.grid"
 Pathfinder = require "jumper.pathfinder"
 
 Room = require "room"
+Perlin = require "perlin"
+perlin = Perlin 256
 
 math.randomseed os.time!
 
@@ -27,26 +29,32 @@ walkable = (value) ->
 
 class Dungeon
   new: =>
-    @width = 40
-    @height = 25
-    @tileSize = 10
+    @width = 48 * 8
+    @height = 34 * 8
+    @tileSize = 2
 
     @grid = {}
     @initializeGrid!
 
     @rooms = {}
-    @numRooms = 20
+    @numRooms = 1000
     @numAttempts = 0
-    @maxAttempts = 100
+    @maxAttempts = 10000
 
     @minW, @maxW = 4, 7
-    @minH, @maxH = 3, 5
+    @minH, @maxH = 2, 4
 
     @initializeRooms!
     @initializeMST!
     @initializeCorridors!
     @initializeWalls!
     -- @setArea 1, 1, 5, 5, tiles.room
+
+    @terrainAttempts = 0
+    @maxTerrainAttempts = 500
+    @numGrassTiles = 20
+
+    @initializeTerrain!
 
   initializeGrid: =>
     for y = 1, @height
@@ -60,7 +68,7 @@ class Dungeon
     if @numAttempts < @maxAttempts and #@rooms < @numRooms
       local x, y, width, height
       width, height = math.random(@minW, @maxW), math.random(@minH, @maxH)
-      x, y = math.random(1, @width-width), math.random(1, @height-height)
+      x, y = math.random(2, @width-width-1), math.random(2, @height-height-1)
 
       local room
       room = Room x, y, width, height
@@ -194,6 +202,29 @@ class Dungeon
         if room.x + room.width <= @width
           if @grid[y][room.x+room.width] ~= tiles.door
             @grid[y][room.x+room.width] = tiles.wall
+
+  initializeTerrain: =>
+    @terrain = perlin\generate @width, @height
+    local counter
+    counter = 0
+    for y = 1, @height
+      for x = 1, @width
+        if @grid[y][x] == tiles.room and @terrain[y][x] > .002
+          counter += 1
+
+    print counter
+
+    if counter < @numGrassTiles and @terrainAttempts < @maxTerrainAttempts
+      @terrainAttempts += 1
+      @initializeTerrain!
+
+  drawTerrain: =>
+    for y = 1, @height
+      for x = 1, @width
+        if @grid[y][x] == tiles.room and @terrain[y][x] > .002
+          love.graphics.setColor(255,255,255,100)
+          love.graphics.rectangle("fill", x * @tileSize, y * @tileSize,
+            @tileSize, @tileSize)
 
   drawMST: =>
     for i = 1, #@mst

@@ -3,14 +3,16 @@ inspect = require "inspect"
 
 dungeon = Dungeon!
 
-print inspect dungeon.mst
-
 love.load = ->
   love.update = (dt) ->
     love.window.setTitle math.floor collectgarbage 'count'
+
   love.draw = ->
     dungeon\drawGrid!
     -- dungeon\drawMST!
+
+    dungeon\drawTerrain!
+    
   love.keypressed = (key) ->
     if key == "r"
       love.event.quit "restart"

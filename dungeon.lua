@@ -5,6 +5,8 @@ local Edge = Delaunay.Edge
 local Grid = require("jumper.grid")
 local Pathfinder = require("jumper.pathfinder")
 local Room = require("room")
+local Perlin = require("perlin")
+local perlin = Perlin(256)
 math.randomseed(os.time())
 local tiles
 tiles = {
@@ -42,7 +44,7 @@ do
       if self.numAttempts < self.maxAttempts and #self.rooms < self.numRooms then
         local x, y, width, height
         width, height = math.random(self.minW, self.maxW), math.random(self.minH, self.maxH)
-        x, y = math.random(1, self.width - width), math.random(1, self.height - height)
+        x, y = math.random(2, self.width - width - 1), math.random(2, self.height - height - 1)
         local room
         room = Room(x, y, width, height)
         local x1, y1, x2, y2
@@ -191,6 +193,33 @@ do
         end
       end
     end,
+    initializeTerrain = function(self)
+      self.terrain = perlin:generate(self.width, self.height)
+      local counter
+      counter = 0
+      for y = 1, self.height do
+        for x = 1, self.width do
+          if self.grid[y][x] == tiles.room and self.terrain[y][x] > .002 then
+            counter = counter + 1
+          end
+        end
+      end
+      print(counter)
+      if counter < self.numGrassTiles and self.terrainAttempts < self.maxTerrainAttempts then
+        self.terrainAttempts = self.terrainAttempts + 1
+        return self:initializeTerrain()
+      end
+    end,
+    drawTerrain = function(self)
+      for y = 1, self.height do
+        for x = 1, self.width do
+          if self.grid[y][x] == tiles.room and self.terrain[y][x] > .002 then
+            love.graphics.setColor(255, 255, 255, 100)
+            love.graphics.rectangle("fill", x * self.tileSize, y * self.tileSize, self.tileSize, self.tileSize)
+          end
+        end
+      end
+    end,
     drawMST = function(self)
       for i = 1, #self.mst do
         love.graphics.setColor(255, 255, 255, 50)
@@ -229,21 +258,25 @@ do
   _base_0.__index = _base_0
   _class_0 = setmetatable({
     __init = function(self)
-      self.width = 40
-      self.height = 25
-      self.tileSize = 10
+      self.width = 48 * 8
+      self.height = 34 * 8
+      self.tileSize = 2
       self.grid = { }
       self:initializeGrid()
       self.rooms = { }
-      self.numRooms = 20
+      self.numRooms = 1000
       self.numAttempts = 0
-      self.maxAttempts = 100
+      self.maxAttempts = 10000
       self.minW, self.maxW = 4, 7
-      self.minH, self.maxH = 3, 5
+      self.minH, self.maxH = 2, 4
       self:initializeRooms()
       self:initializeMST()
       self:initializeCorridors()
-      return self:initializeWalls()
+      self:initializeWalls()
+      self.terrainAttempts = 0
+      self.maxTerrainAttempts = 500
+      self.numGrassTiles = 20
+      return self:initializeTerrain()
     end,
     __base = _base_0,
     __name = "Dungeon"

@@ -1,13 +1,13 @@
 local Dungeon = require("dungeon")
 local inspect = require("inspect")
 local dungeon = Dungeon()
-print(inspect(dungeon.mst))
 love.load = function()
   love.update = function(dt)
     return love.window.setTitle(math.floor(collectgarbage('count')))
   end
   love.draw = function()
-    return dungeon:drawGrid()
+    dungeon:drawGrid()
+    return dungeon:drawTerrain()
   end
   love.keypressed = function(key)
     if key == "r" then
