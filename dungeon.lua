@@ -8,6 +8,11 @@ local Room = require("room")
 local Perlin = require("perlin")
 local perlin = Perlin(256)
 math.randomseed(os.time())
+local sprites = love.graphics.newImage("rogue.png")
+sprites:setFilter("nearest", "nearest")
+local wallSprite = love.graphics.newQuad(0, 0, 32, 32, sprites:getWidth(), sprites:getHeight())
+local floorSprite = love.graphics.newQuad(32, 0, 32, 32, sprites:getWidth(), sprites:getHeight())
+local corridorSprite = love.graphics.newQuad(64, 0, 32, 32, sprites:getWidth(), sprites:getHeight())
 local tiles
 tiles = {
   room = 1,
@@ -213,8 +218,12 @@ do
     drawTerrain = function(self)
       for y = 1, self.height do
         for x = 1, self.width do
-          if self.grid[y][x] == tiles.room and self.terrain[y][x] > .002 then
-            love.graphics.setColor(255, 255, 255, 100)
+          if self.grid[y][x] == tiles.room then
+            if self.terrain[y][x] > .002 then
+              love.graphics.setColor(35, 85, 255, 55)
+            else
+              love.graphics.setColor(35, 235, 105, 55)
+            end
             love.graphics.rectangle("fill", x * self.tileSize, y * self.tileSize, self.tileSize, self.tileSize)
           end
         end
@@ -230,19 +239,20 @@ do
       for y = 1, self.height do
         for x = 1, self.width do
           if self.grid[y][x] == tiles.room then
-            love.graphics.setColor(255, 0, 0, 100)
+            love.graphics.setColor(245, 245, 245, 100)
+            love.graphics.draw(sprites, floorSprite, x * self.tileSize, y * self.tileSize, 0, .5, .5)
           elseif self.grid[y][x] == tiles.corridor then
-            love.graphics.setColor(0, 0, 255, 100)
+            love.graphics.setColor(200, 155, 65, 100)
+            love.graphics.draw(sprites, corridorSprite, x * self.tileSize, y * self.tileSize, 0, .5, .5)
           elseif self.grid[y][x] == tiles.door then
-            love.graphics.setColor(255, 255, 0, 150)
+            love.graphics.setColor(65, 65, 55, 150)
+            love.graphics.rectangle("fill", x * self.tileSize, y * self.tileSize, self.tileSize, self.tileSize)
           elseif self.grid[y][x] == tiles.wall then
-            love.graphics.setColor(0, 255, 0, 150)
-          elseif self.grid[y][x] == tiles.noCorridor then
-            love.graphics.setColor(0, 255, 255, 100)
+            love.graphics.setColor(235, 35, 50, 150)
+            love.graphics.draw(sprites, wallSprite, x * self.tileSize, y * self.tileSize, 0, .5, .5)
           else
             love.graphics.setColor(0, 255, 0, 100)
           end
-          love.graphics.rectangle("fill", x * self.tileSize, y * self.tileSize, self.tileSize, self.tileSize)
         end
       end
     end,
@@ -258,15 +268,15 @@ do
   _base_0.__index = _base_0
   _class_0 = setmetatable({
     __init = function(self)
-      self.width = 48 * 8
-      self.height = 34 * 8
-      self.tileSize = 2
+      self.width = 48
+      self.height = 34
+      self.tileSize = 16
       self.grid = { }
       self:initializeGrid()
       self.rooms = { }
-      self.numRooms = 1000
+      self.numRooms = 15
       self.numAttempts = 0
-      self.maxAttempts = 10000
+      self.maxAttempts = 100
       self.minW, self.maxW = 4, 7
       self.minH, self.maxH = 2, 4
       self:initializeRooms()
@@ -275,7 +285,7 @@ do
       self:initializeWalls()
       self.terrainAttempts = 0
       self.maxTerrainAttempts = 500
-      self.numGrassTiles = 20
+      self.numGrassTiles = 40
       return self:initializeTerrain()
     end,
     __base = _base_0,

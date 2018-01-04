@@ -11,6 +11,12 @@ perlin = Perlin 256
 
 math.randomseed os.time!
 
+sprites = love.graphics.newImage "rogue.png"
+sprites\setFilter "nearest", "nearest"
+wallSprite = love.graphics.newQuad 0, 0, 32, 32, sprites\getWidth!, sprites\getHeight!
+floorSprite = love.graphics.newQuad 32, 0, 32, 32, sprites\getWidth!, sprites\getHeight!
+corridorSprite = love.graphics.newQuad 64, 0, 32, 32, sprites\getWidth!, sprites\getHeight!
+
 local tiles
 tiles = {
   room: 1,
@@ -29,17 +35,17 @@ walkable = (value) ->
 
 class Dungeon
   new: =>
-    @width = 48 * 8
-    @height = 34 * 8
-    @tileSize = 2
+    @width = 48
+    @height = 34
+    @tileSize = 16
 
     @grid = {}
     @initializeGrid!
 
     @rooms = {}
-    @numRooms = 1000
+    @numRooms = 15
     @numAttempts = 0
-    @maxAttempts = 10000
+    @maxAttempts = 100
 
     @minW, @maxW = 4, 7
     @minH, @maxH = 2, 4
@@ -52,7 +58,7 @@ class Dungeon
 
     @terrainAttempts = 0
     @maxTerrainAttempts = 500
-    @numGrassTiles = 20
+    @numGrassTiles = 40
 
     @initializeTerrain!
 
@@ -221,8 +227,11 @@ class Dungeon
   drawTerrain: =>
     for y = 1, @height
       for x = 1, @width
-        if @grid[y][x] == tiles.room and @terrain[y][x] > .002
-          love.graphics.setColor(255,255,255,100)
+        if @grid[y][x] == tiles.room 
+          if @terrain[y][x] > .002
+            love.graphics.setColor(35,85,255,55)
+          else
+            love.graphics.setColor(35,235,105,55)
           love.graphics.rectangle("fill", x * @tileSize, y * @tileSize,
             @tileSize, @tileSize)
 
@@ -236,26 +245,33 @@ class Dungeon
     for y = 1, @height
       for x = 1, @width
         if @grid[y][x] == tiles.room
-          love.graphics.setColor(255,0,0,100)
+          love.graphics.setColor 245,245,245,100
+          love.graphics.draw sprites, floorSprite, x * @tileSize, y * @tileSize, 0, .5, .5
         elseif @grid[y][x] == tiles.corridor
-          love.graphics.setColor(0,0,255,100)
+          love.graphics.setColor 200,155,65,100
+          love.graphics.draw sprites, corridorSprite, x * @tileSize, y * @tileSize, 0, .5, .5
         elseif @grid[y][x] == tiles.door
-          love.graphics.setColor(255,255,0,150)
+          love.graphics.setColor 65,65,55,150
+          love.graphics.rectangle "fill", x * @tileSize, y * @tileSize, @tileSize, @tileSize
         elseif @grid[y][x] == tiles.wall
-          love.graphics.setColor(0,255,0,150)
-        elseif @grid[y][x] == tiles.noCorridor
-          love.graphics.setColor(0,255,255,100)
+          love.graphics.setColor 235,35,50,150
+          love.graphics.draw sprites, wallSprite, x * @tileSize, y * @tileSize, 0, .5, .5
+        -- elseif @grid[y][x] == tiles.noCorridor
+          -- love.graphics.setColor 0,255,255,100
+
         else
-          love.graphics.setColor(0,255,0,100)
-        love.graphics.rectangle("fill", x * @tileSize, y * @tileSize, @tileSize, @tileSize)
+          love.graphics.setColor 0,255,0,100
+        -- love.graphics.rectangle "fill", x * @tileSize, y * @tileSize, @tileSize, @tileSize
+        -- love.graphics.setColor 255, 255, 255, 15
+        -- love.graphics.rectangle "fill", x * @tileSize, y * @tileSize, @tileSize, @tileSize
 
     -- for i = 1, #@corridors
-    --   love.graphics.setColor(255,0,255,150)
+    --   love.graphics.setColor 255,0,255,150
     --   local p1, p2
     --   p1 = @corridors[i][1]
     --   p2 = @corridors[i][#@corridors[i]]
-    --   love.graphics.rectangle("fill", p1.x * @tileSize, p1.y * @tileSize, @tileSize, @tileSize)
-    --   love.graphics.rectangle("fill", p2.x * @tileSize, p2.y * @tileSize, @tileSize, @tileSize)
+    --   love.graphics.rectangle "fill", p1.x * @tileSize, p1.y * @tileSize, @tileSize, @tileSize
+    --   love.graphics.rectangle "fill", p2.x * @tileSize, p2.y * @tileSize, @tileSize, @tileSize
 
   drawRooms: =>
     for i = 1, #@rooms
